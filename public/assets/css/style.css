@@ -953,10 +953,20 @@ section {
 }
 
 .menu .menu-img {
-  width: 70px;
-  border-radius: 50%;
+  width: 120px;
+  height: 120px; /* Ajouter la hauteur pour qu'elle soit égale à la largeur */
+  border-radius: 50%; /* Rendre l'image bien ronde */
   float: left;
-  border: 5px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  object-fit: cover; /* Assurer que l'image ne soit pas déformée */
+}
+
+/* Styles spécifiques pour les écrans mobiles */
+@media (max-width: 768px) {
+  .menu .menu-img {
+    width: 70px;
+    height: 70px; /* Ajuster la hauteur pour correspondre à la largeur */
+  }
 }
 
 .menu .menu-content {
@@ -1767,4 +1777,53 @@ section {
   text-align: center;
   font-size: 13px;
   color: #fff;
+}
+
+
+
+/* Personnalisation du bouton avec la classe .btn-submit */
+.btn-submit {
+  background-color: #cda45e; /* Couleur de fond */
+  color: white; /* Couleur du texte */
+  border: none; /* Suppression de la bordure */
+  padding: 10px 20px; /* Espacement interne (padding) */
+  font-size: 16px; /* Taille du texte */
+  border-radius: 5px; /* Arrondir les coins */
+  cursor: pointer; /* Curseur de pointeur */
+  transition: background-color 0.3s ease; /* Animation au survol */
+}
+
+.btn-submit:hover {
+  background-color: #b8894d; /* Couleur au survol */
+}
+
+.btn-special-color{
+background-color: #cda45e;
+}
+
+.menu-item {
+  position: relative; /* Positionner le conteneur pour le positionnement absolu du bouton */
+  padding: 15px;
+}
+
+.btn-container {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  z-index:5;
+}
+
+.btn-cart {
+  background-color: #cda45e; /* Couleur du bouton */
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-cart svg {
+  vertical-align: middle;
+  margin-right: 5px;
 }

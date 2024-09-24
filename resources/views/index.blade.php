@@ -27,8 +27,10 @@
     <link href="{{ asset('assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
 
+
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+
 
     <!-- =======================================================
   * Template Name: Restaurantly - v3.9.1
@@ -62,7 +64,7 @@
     <header id="header" class="fixed-top d-flex align-items-cente">
         <div class="container-fluid container-xl d-flex align-items-center justify-content-lg-between">
 
-            <h1 class="logo me-auto me-lg-0"><a href="index.html">Restaurantly</a></h1>
+            <h1 class="logo me-auto me-lg-0"><a href="/">Mon Restaurant</a></h1>
             <!-- Uncomment below if you prefer to use an image logo -->
             <!-- <a href="index.html" class="logo me-auto me-lg-0"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
 
@@ -76,6 +78,23 @@
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav><!-- .navbar -->
             <a href="#menu" class="book-a-table-btn scrollto d-none d-lg-flex">Menu</a>
+            <div class="dropdown">
+                <button class="btn btn-special-color dropdown-toggle" type="button" id="cartDropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-cart3" viewBox="0 0 16 16">
+                        <path
+                            d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l.84 4.479 9.144-.459L13.89 4zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
+                    </svg>
+                    <span id="cart-count" class="badge bg-secondary">0</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="cartDropdown"
+                    style="min-width: 300px;">
+                    <div id="cart-content" class="mb-3"></div>
+                    <div id="cart-total" class="d-flex justify-content-between fw-bold mb-3"></div>
+                    <div id="kkiapay-container"></div>
+                </div>
+            </div>
 
         </div>
     </header><!-- End Header -->
@@ -85,8 +104,8 @@
         <div class="container position-relative text-center text-lg-start" data-aos="zoom-in" data-aos-delay="100">
             <div class="row">
                 <div class="col-lg-8">
-                    <h1>Welcome to <span>Restaurantly</span></h1>
-                    <h2>Delivering great food for more than 18 years!</h2>
+                    <h1>Bienvenu chez <span>Restaurantly</span></h1>
+                    {{--  <h2>Delivering great food for more than 18 years!</h2> --}}
 
                     <div class="btns">
                         <a href="#menu" class="btn-menu animated fadeInUp scrollto">Our Menu</a>
@@ -141,7 +160,6 @@
 
 
         <!-- ======= Menu Section ======= -->
-        <!-- ======= Menu Section ======= -->
         <section id="menu" class="menu section-bg">
             <div class="container" data-aos="fade-up">
 
@@ -153,23 +171,41 @@
                 <div class="row" data-aos="fade-up" data-aos-delay="100">
                     <div class="col-lg-12 d-flex justify-content-center">
                         <ul id="menu-flters">
-                            <li data-filter="*" class="filter-active">All</li>
-                            <li data-filter=".filter-starters">Starters</li>
+                            <div>
+                                <!-- Ajout du champ de filtrage par prix -->
+                                <input type="number" id="price-filter" placeholder="Entrez votre budget"
+                                    class="form-control" style="width: 250px; margin-left: 10px;" />
+
+                                <button id="filter-btn" class="btn btn-submit"
+                                    style="margin-left: 10px; background-color: #cda45e;">Filtrer</button>
+                            </div>
                         </ul>
                     </div>
-                </div> 
+                </div>
 
                 <div class="row menu-container" data-aos="fade-up" data-aos-delay="200">
-
                     @foreach ($menus as $menu)
                         <div class="col-lg-6 menu-item filter-starters">
+                            <!-- Image du menu -->
                             <img src="{{ $menu->image }}" class="menu-img" alt="{{ $menu->nom }}">
                             <div class="menu-content">
-                                <a
-                                    href="#">{{ $menu->nom }}</a><span>${{ number_format($menu->prix, 2) }}</span>
+                                <a href="#">{{ $menu->nom }}</a>
+                                <span>XOF {{ $menu->prix }}</span>
                             </div>
                             <div class="menu-ingredients">
                                 {{ $menu->description }}
+                            </div>
+                            <!-- Conteneur pour le bouton -->
+                            <div class="btn-container">
+                                <!-- Bouton pour ajouter au panier -->
+                                <button class="btn btn-cart" data-id="{{ $menu->id }}"
+                                    data-nom="{{ $menu->nom }}" data-prix="{{ $menu->prix }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                        fill="currentColor" class="bi bi-cart-plus-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M9 5.5V7h1.5a.5.5 0 0 1 0 1H9v1.5a.5.5 0 0 1-1 0V8H6.5a.5.5 0 0 1 0-1H8V5.5a.5.5 0 0 1 1 0" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     @endforeach
@@ -179,6 +215,175 @@
             </div>
         </section><!-- End Menu Section -->
 
+        <script src="https://cdn.kkiapay.me/k.js"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialiser le panier comme un tableau vide s'il n'existe pas déjà
+                let panier = JSON.parse(localStorage.getItem('panier')) || [];
+
+                function ajouterAuPanier(id, nom, prix) {
+                    let article = panier.find(item => item.id === id);
+                    if (article) {
+                        article.quantite += 1;
+                    } else {
+                        panier.push({
+                            id,
+                            nom,
+                            prix,
+                            quantite: 1
+                        });
+                    }
+                    localStorage.setItem('panier', JSON.stringify(panier));
+                    afficherPanier();
+                    prepareKkiapayWidget();
+                }
+
+                function afficherPanier() {
+                    let panierHTML = '';
+                    let total = 0;
+                    let totalItems = 0;
+
+                    panier.forEach(item => {
+                        total += item.prix * item.quantite;
+                        totalItems += item.quantite;
+                        panierHTML += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <span class="fw-bold">${item.nom}</span>
+                    <span class="text-muted ms-2">x${item.quantite}</span>
+                </div>
+                <div>
+                    <span class="me-2">XOF ${(item.prix * item.quantite).toFixed(2)}</span>
+                    <button class="btn btn-sm btn-outline-danger btn-remove" data-id="${item.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                        </svg>
+                    </button>
+                </div>
+                <hr>
+            </div>
+            `;
+                    });
+
+                    document.querySelector('#cart-content').innerHTML = panierHTML || '<p>Votre panier est vide.</p>';
+                    document.querySelector('#cart-total').innerHTML = `
+            <span>Total:</span>
+            <span>XOF ${total.toFixed(2)}</span>
+        `;
+                    document.querySelector('#cart-count').textContent = totalItems;
+                }
+
+                document.querySelectorAll('.btn-cart').forEach(button => {
+                    button.addEventListener('click', function() {
+                        let id = this.getAttribute('data-id');
+                        let nom = this.getAttribute('data-nom');
+                        let prix = parseFloat(this.getAttribute('data-prix'));
+                        ajouterAuPanier(id, nom, prix);
+                    });
+                });
+
+                document.querySelector('#cart-content').addEventListener('click', function(event) {
+                    if (event.target.closest('.btn-remove')) {
+                        let id = event.target.closest('.btn-remove').getAttribute('data-id');
+                        let index = panier.findIndex(item => item.id == id);
+                        if (index !== -1) {
+                            if (panier[index].quantite > 1) {
+                                panier[index].quantite -= 1;
+                            } else {
+                                panier.splice(index, 1);
+                            }
+                            localStorage.setItem('panier', JSON.stringify(panier));
+                            afficherPanier();
+                            prepareKkiapayWidget();
+                        }
+                    }
+                });
+
+                function prepareKkiapayWidget() {
+                    const kkiapayContainer = document.getElementById('kkiapay-container');
+                    const totalAmount = panier.reduce((total, item) => total + (item.prix * item.quantite), 0);
+
+                    if (totalAmount > 0) {
+                        kkiapayContainer.innerHTML = '';
+                        const widget = document.createElement('kkiapay-widget');
+                        widget.setAttribute('amount', totalAmount);
+                        widget.setAttribute('key', 'cb876650e192fdf79d12342d023a6f4ebe257de4');
+                        widget.setAttribute('position', 'center');
+                        widget.setAttribute('sandbox', 'false');
+                        widget.setAttribute('callback', 'https://votre-backend-url/callback');
+                        kkiapayContainer.appendChild(widget);
+                        kkiapayContainer.style.display = 'block';
+                    } else {
+                        kkiapayContainer.style.display = 'none';
+                    }
+                }
+
+                // Vider le panier au chargement de la page (à retirer une fois le problème résolu)
+                //btn-special-colorlocalStorage.removeItem('panier');
+               // panier = [];
+
+                afficherPanier();
+                prepareKkiapayWidget();
+            });
+        </script>
+        <script>
+            window.addEventListener('load', () => {
+                let menuContainer = document.querySelector('.menu-container');
+                if (menuContainer) {
+                    let menuIsotope = new Isotope(menuContainer, {
+                        itemSelector: '.menu-item',
+                        layoutMode: 'fitRows'
+                    });
+
+                    let menuFilters = document.querySelectorAll('#menu-flters li');
+
+                    menuFilters.forEach(filter => {
+                        filter.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            menuFilters.forEach(el => el.classList.remove('filter-active'));
+                            this.classList.add('filter-active');
+
+                            menuIsotope.arrange({
+                                filter: this.getAttribute('data-filter')
+                            });
+                            menuIsotope.on('arrangeComplete', function() {
+                                AOS.refresh();
+                            });
+                        });
+                    });
+
+                    function filterByPrice() {
+                        let maxPrice = parseFloat(document.getElementById('price-filter').value);
+                        if (!isNaN(maxPrice)) {
+                            menuIsotope.arrange({
+                                filter: function(itemElem) {
+                                    // Utiliser un regex pour extraire le prix en tant que nombre
+                                    let priceText = itemElem.querySelector('.menu-content span')
+                                        .textContent;
+                                    let price = parseFloat(priceText.replace(/[^\d.-]/g, ''));
+                                    return price <= maxPrice;
+                                }
+                            });
+                            menuIsotope.on('arrangeComplete', function() {
+                                AOS.refresh();
+                            });
+                        }
+                    }
+
+                    document.getElementById('price-filter').addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter') {
+                            filterByPrice();
+                        }
+                    });
+
+                    document.getElementById('filter-btn').addEventListener('click', function() {
+                        filterByPrice();
+                    });
+                }
+            });
+        </script>
 
 
         <!-- ======= Contact Section ======= -->
