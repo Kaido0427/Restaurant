@@ -529,7 +529,7 @@
                             document.getElementById('addMenuForm').classList.add('d-none');
                             document.getElementById('overlay').classList.remove('d-block');
                         });
-                    </script>
+                    </script>  
 
                 </div>
                 <!-- Update menu form (hidden by default) -->

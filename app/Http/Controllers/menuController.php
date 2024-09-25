@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\menu;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class menuController extends Controller
 {
@@ -14,26 +15,44 @@ class menuController extends Controller
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'prix' => 'required|numeric',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,wepb|max:2048',
         ]);
 
-        $menu = new menu();
-        $menu->nom = $request->input('nom');
-        $menu->description = $request->input('description');
-        $menu->prix = $request->input('prix');
+        try {
+            // Création du menu
+            $menu = new Menu();
+            $menu->nom = $request->input('nom');
+            $menu->description = $request->input('description');
+            $menu->prix = $request->input('prix');
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $imagePath = public_path('menus');
-            $image->move($imagePath, $imageName);
-            $menu->image = 'menus/' . $imageName;
+            // Gestion de l'image
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $imagePath = public_path('menus');
+                $image->move($imagePath, $imageName);
+                $menu->image = 'menus/' . $imageName;
+            }
+
+            // Sauvegarde du menu
+            $menu->save();
+
+            // Retour avec succès
+            return redirect()->back()->with('success', 'Menu ajouté avec succès.');
+        } catch (\Exception $e) {
+            // Enregistrement dans les logs avec le message d'erreur
+            Log::error('Erreur lors de l\'ajout du menu: ' . $e->getMessage(), [
+                'nom' => $request->input('nom'),
+                'description' => $request->input('description'),
+                'prix' => $request->input('prix'),
+                'image' => $request->file('image') ? $request->file('image')->getClientOriginalName() : 'Aucune image',
+            ]);
+
+            // Retour avec message d'erreur
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'ajout du menu. Veuillez réessayer.');
         }
-
-        $menu->save();
-
-        return redirect()->back()->with('success', 'Menu ajouté avec succès.');
     }
+
 
     public function update(Request $request, $id)
     {
@@ -41,7 +60,7 @@ class menuController extends Controller
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'prix' => 'required|numeric',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         $menu = Menu::find($id);
