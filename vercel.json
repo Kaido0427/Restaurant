@@ -1,21 +1,22 @@
 {
     "version": 2,
     "builds": [
-        { "src": "public/index.php", "use": "vercel-php@0.3.1" }
+      { "src": "Dockerfile", "use": "@vercel/docker" }
     ],
     "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "public/index.php"
-        }
+      {
+        "src": "/(.*)",
+        "dest": "/var/www/html/public/index.php"
+      }
     ],
     "env": {
-        "APP_NAME": "Vercel Laravel",
-        "APP_ENV": "production",
-        "APP_DEBUG": "false",
-        "APP_URL": "https://php-laravel.vercel.app",
-        "CACHE_DRIVER": "file",
-        "SESSION_DRIVER": "file",
-        "QUEUE_CONNECTION": "sync"
+      "APP_NAME": "Vercel Laravel",
+      "APP_ENV": "production",
+      "APP_DEBUG": "false",
+      "APP_URL": "https://php-laravel.vercel.app",
+      "CACHE_DRIVER": "file",
+      "SESSION_DRIVER": "file",
+      "QUEUE_CONNECTION": "sync"
     }
-}
+  }
+  
