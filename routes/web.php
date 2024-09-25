@@ -18,11 +18,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $menus = menu::all();
-    
-    return view('index',compact('menus'));
+
+    return view('index', compact('menus'));
 });
 
 Auth::routes();
 
 Route::get('/menus', [clientController::class, 'showMenus']);
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('/save-commande', [clientController::class, 'enregistrerCommande']);
+route::post('/cancel-commande/{id}', [clientController::class, 'annulerCommande']);
+Route::get('/pay/callback', [clientController::class, 'payOrder']);
+route::get('/commande/livraison/{id}',[clientController::class, 'livrerCommande'] )->middleware('auth')->name('deliver.order');
+route::get('/get-order-details',[clientController::class,'getOrderDetails']);

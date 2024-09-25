@@ -11,7 +11,7 @@ class commande_menu extends Model
 
     protected $table = "commande_menus";
 
-    protected $fillable = ['commande_id', 'menu_id', 'quantite'];
+    protected $fillable = ['commande_id', 'menu_id', 'quantity'];
 
     public function commande()
     {

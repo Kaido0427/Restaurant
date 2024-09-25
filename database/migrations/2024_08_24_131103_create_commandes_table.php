@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('client_id');
             $table->decimal('montant', 8, 2);
-            $table->enum('status', ['pending', 'paid', 'delivered', 'canceled'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'delivered'])->default('pending');
             $table->string('qr_code')->nullable();
             $table->timestamps();
         });

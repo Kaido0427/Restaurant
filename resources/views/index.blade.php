@@ -8,6 +8,7 @@
     <title>Restaurantly Bootstrap Template - Index</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicons -->
     <link href="{{ asset('assets/img/favicon.png') }}" rel="icon">
@@ -78,6 +79,7 @@
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav><!-- .navbar -->
             <a href="#menu" class="book-a-table-btn scrollto d-none d-lg-flex">Menu</a>
+
             <div class="dropdown">
                 <button class="btn btn-special-color dropdown-toggle" type="button" id="cartDropdown"
                     data-bs-toggle="dropdown" aria-expanded="false">
@@ -92,7 +94,8 @@
                     style="min-width: 300px;">
                     <div id="cart-content" class="mb-3"></div>
                     <div id="cart-total" class="d-flex justify-content-between fw-bold mb-3"></div>
-                    <div id="kkiapay-container"></div>
+                    <button id="save-commande" class="btn btn-special-color">Passer ma commande</button>
+                    {{--  <div id="kkiapay-container"></div> --}}
                 </div>
             </div>
 
@@ -108,7 +111,9 @@
                     {{--  <h2>Delivering great food for more than 18 years!</h2> --}}
 
                     <div class="btns">
-                        <a href="#menu" class="btn-menu animated fadeInUp scrollto">Our Menu</a>
+                        <a href="#menu" class="btn-menu animated fadeInUp scrollto">Notre Menu</a>
+                        <a href="#" class="btn-menu animated fadeInUp scrollto" data-bs-toggle="modal"
+                            data-bs-target="#orderDetailsModal">Recuperer Ma commande</a>
                     </div>
                 </div>
 
@@ -215,175 +220,6 @@
             </div>
         </section><!-- End Menu Section -->
 
-        <script src="https://cdn.kkiapay.me/k.js"></script>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Initialiser le panier comme un tableau vide s'il n'existe pas déjà
-                let panier = JSON.parse(localStorage.getItem('panier')) || [];
-
-                function ajouterAuPanier(id, nom, prix) {
-                    let article = panier.find(item => item.id === id);
-                    if (article) {
-                        article.quantite += 1;
-                    } else {
-                        panier.push({
-                            id,
-                            nom,
-                            prix,
-                            quantite: 1
-                        });
-                    }
-                    localStorage.setItem('panier', JSON.stringify(panier));
-                    afficherPanier();
-                    prepareKkiapayWidget();
-                }
-
-                function afficherPanier() {
-                    let panierHTML = '';
-                    let total = 0;
-                    let totalItems = 0;
-
-                    panier.forEach(item => {
-                        total += item.prix * item.quantite;
-                        totalItems += item.quantite;
-                        panierHTML += `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <span class="fw-bold">${item.nom}</span>
-                    <span class="text-muted ms-2">x${item.quantite}</span>
-                </div>
-                <div>
-                    <span class="me-2">XOF ${(item.prix * item.quantite).toFixed(2)}</span>
-                    <button class="btn btn-sm btn-outline-danger btn-remove" data-id="${item.id}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                        </svg>
-                    </button>
-                </div>
-                <hr>
-            </div>
-            `;
-                    });
-
-                    document.querySelector('#cart-content').innerHTML = panierHTML || '<p>Votre panier est vide.</p>';
-                    document.querySelector('#cart-total').innerHTML = `
-            <span>Total:</span>
-            <span>XOF ${total.toFixed(2)}</span>
-        `;
-                    document.querySelector('#cart-count').textContent = totalItems;
-                }
-
-                document.querySelectorAll('.btn-cart').forEach(button => {
-                    button.addEventListener('click', function() {
-                        let id = this.getAttribute('data-id');
-                        let nom = this.getAttribute('data-nom');
-                        let prix = parseFloat(this.getAttribute('data-prix'));
-                        ajouterAuPanier(id, nom, prix);
-                    });
-                });
-
-                document.querySelector('#cart-content').addEventListener('click', function(event) {
-                    if (event.target.closest('.btn-remove')) {
-                        let id = event.target.closest('.btn-remove').getAttribute('data-id');
-                        let index = panier.findIndex(item => item.id == id);
-                        if (index !== -1) {
-                            if (panier[index].quantite > 1) {
-                                panier[index].quantite -= 1;
-                            } else {
-                                panier.splice(index, 1);
-                            }
-                            localStorage.setItem('panier', JSON.stringify(panier));
-                            afficherPanier();
-                            prepareKkiapayWidget();
-                        }
-                    }
-                });
-
-                function prepareKkiapayWidget() {
-                    const kkiapayContainer = document.getElementById('kkiapay-container');
-                    const totalAmount = panier.reduce((total, item) => total + (item.prix * item.quantite), 0);
-
-                    if (totalAmount > 0) {
-                        kkiapayContainer.innerHTML = '';
-                        const widget = document.createElement('kkiapay-widget');
-                        widget.setAttribute('amount', totalAmount);
-                        widget.setAttribute('key', 'cb876650e192fdf79d12342d023a6f4ebe257de4');
-                        widget.setAttribute('position', 'center');
-                        widget.setAttribute('sandbox', 'false');
-                        widget.setAttribute('callback', 'https://votre-backend-url/callback');
-                        kkiapayContainer.appendChild(widget);
-                        kkiapayContainer.style.display = 'block';
-                    } else {
-                        kkiapayContainer.style.display = 'none';
-                    }
-                }
-
-                // Vider le panier au chargement de la page (à retirer une fois le problème résolu)
-                //btn-special-colorlocalStorage.removeItem('panier');
-               // panier = [];
-
-                afficherPanier();
-                prepareKkiapayWidget();
-            });
-        </script>
-        <script>
-            window.addEventListener('load', () => {
-                let menuContainer = document.querySelector('.menu-container');
-                if (menuContainer) {
-                    let menuIsotope = new Isotope(menuContainer, {
-                        itemSelector: '.menu-item',
-                        layoutMode: 'fitRows'
-                    });
-
-                    let menuFilters = document.querySelectorAll('#menu-flters li');
-
-                    menuFilters.forEach(filter => {
-                        filter.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            menuFilters.forEach(el => el.classList.remove('filter-active'));
-                            this.classList.add('filter-active');
-
-                            menuIsotope.arrange({
-                                filter: this.getAttribute('data-filter')
-                            });
-                            menuIsotope.on('arrangeComplete', function() {
-                                AOS.refresh();
-                            });
-                        });
-                    });
-
-                    function filterByPrice() {
-                        let maxPrice = parseFloat(document.getElementById('price-filter').value);
-                        if (!isNaN(maxPrice)) {
-                            menuIsotope.arrange({
-                                filter: function(itemElem) {
-                                    // Utiliser un regex pour extraire le prix en tant que nombre
-                                    let priceText = itemElem.querySelector('.menu-content span')
-                                        .textContent;
-                                    let price = parseFloat(priceText.replace(/[^\d.-]/g, ''));
-                                    return price <= maxPrice;
-                                }
-                            });
-                            menuIsotope.on('arrangeComplete', function() {
-                                AOS.refresh();
-                            });
-                        }
-                    }
-
-                    document.getElementById('price-filter').addEventListener('keydown', function(event) {
-                        if (event.key === 'Enter') {
-                            filterByPrice();
-                        }
-                    });
-
-                    document.getElementById('filter-btn').addEventListener('click', function() {
-                        filterByPrice();
-                    });
-                }
-            });
-        </script>
 
 
         <!-- ======= Contact Section ======= -->
@@ -550,6 +386,55 @@
         </div>
     </footer><!-- End Footer -->
 
+    <!-- Modal Structure -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Important</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <!-- Kkiapay payment button will be injected here -->
+                    <div id="kkiapay-container"></div>
+                    <button type="button" id="cancelOrder" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Annuler la commande</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailsModalLabel">Vérification de commande</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="loader" style="display:none;">Chargement...</div>
+                    <div class="form-group">
+                        <label for="client-id-input">Entrez le code client</label>
+                        <input type="text" class="form-control" id="client-id-input" placeholder="Client ID">
+                    </div>
+                    <button type="button" class="btn btn-primary mt-3" id="verify-code-button">Vérifier</button>
+                    <div id="order-details" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal HTML -->
+
+
     <div id="preloader"></div>
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
             class="bi bi-arrow-up-short"></i></a>
@@ -557,6 +442,8 @@
     <!-- Vendor JS Files -->
     <script src="{{ asset('assets/vendor/aos/aos.js') }}"></script>
     <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <!-- Include Bootstrap JS -->
+
     <script src="{{ asset('assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
@@ -564,6 +451,401 @@
 
     <!-- Template Main JS File -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
+
+    <script src="https://cdn.kkiapay.me/k.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Script chargé.');
+
+            // Initialiser le panier comme un tableau vide s'il n'existe pas déjà
+            let panier = JSON.parse(localStorage.getItem('panier')) || [];
+            let commandeId = null; // Initialiser l'ID de la commande à null
+
+            function ajouterAuPanier(id, nom, prix) {
+                let article = panier.find(item => item.id === id);
+                if (article) {
+                    article.quantite += 1;
+                } else {
+                    panier.push({
+                        id,
+                        nom,
+                        prix,
+                        quantite: 1
+                    });
+                }
+                localStorage.setItem('panier', JSON.stringify(panier));
+                afficherPanier();
+                prepareKkiapayWidget();
+            }
+
+            function afficherPanier() {
+                let panierHTML = '';
+                let total = 0;
+                let totalItems = 0;
+
+                panier.forEach(item => {
+                    total += item.prix * item.quantite;
+                    totalItems += item.quantite;
+                    panierHTML += `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="fw-bold">${item.nom}</span>
+                        <span class="text-muted ms-2">x${item.quantite}</span>
+                    </div>
+                    <div>
+                        <span class="me-2">XOF ${(item.prix * item.quantite)}</span>
+                        <button class="btn btn-sm btn-outline-danger btn-remove" data-id="${item.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <hr>
+                </div>
+            `;
+                });
+
+                document.querySelector('#cart-content').innerHTML = panierHTML || '<p>Votre panier est vide.</p>';
+                document.querySelector('#cart-total').innerHTML = `
+            <span>Total:</span>
+            <span>XOF ${total}</span>
+        `;
+                document.querySelector('#cart-count').textContent = totalItems;
+            }
+
+            function prepareKkiapayWidget() {
+                const kkiapayContainer = document.getElementById('kkiapay-container');
+                const totalAmount = panier.reduce((total, item) => total + (item.prix * item.quantite), 0);
+
+                if (totalAmount > 0) {
+                    kkiapayContainer.innerHTML = '';
+                    const widget = document.createElement('kkiapay-widget');
+                    widget.setAttribute('amount', totalAmount);
+                    widget.setAttribute('key', 'b7b8a6c0652211efbf02478c5adba4b8');
+                    widget.setAttribute('position', 'center');
+                    widget.setAttribute('sandbox', 'true');
+                    widget.setAttribute('callback', 'http://127.0.0.1:8000/pay/callback');
+
+                    // Utiliser l'ID de la commande s'il est disponible
+                    if (commandeId) {
+                        widget.setAttribute('order_id', commandeId);
+                    }
+
+                    kkiapayContainer.appendChild(widget);
+                    kkiapayContainer.style.display = 'block';
+                } else {
+                    kkiapayContainer.style.display = 'none';
+                }
+            }
+
+            document.querySelectorAll('.btn-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    let id = this.getAttribute('data-id');
+                    let nom = this.getAttribute('data-nom');
+                    let prix = parseFloat(this.getAttribute('data-prix'));
+                    ajouterAuPanier(id, nom, prix);
+                });
+            });
+
+            document.querySelector('#cart-content').addEventListener('click', function(event) {
+                if (event.target.closest('.btn-remove')) {
+                    let id = event.target.closest('.btn-remove').getAttribute('data-id');
+                    let index = panier.findIndex(item => item.id == id);
+                    if (index !== -1) {
+                        if (panier[index].quantite > 1) {
+                            panier[index].quantite -= 1;
+                        } else {
+                            panier.splice(index, 1);
+                        }
+                        localStorage.setItem('panier', JSON.stringify(panier));
+                        afficherPanier();
+                        prepareKkiapayWidget();
+                    }
+                }
+            });
+
+            document.querySelector('#save-commande').addEventListener('click', function() {
+                console.log('Bouton "Enregistrer la commande" cliqué.');
+                this.disabled = true;
+
+                if (panier.length === 0) {
+                    alert('Votre panier est vide.');
+                    console.log('Panier est vide.');
+                    return;
+                }
+
+                let commandeData = {
+                    panier: panier
+                };
+                console.log('Données de la commande:', commandeData);
+
+                fetch('/save-commande', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: JSON.stringify(commandeData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Données reçues:', data);
+
+                        if (data.status) {
+                            localStorage.removeItem('panier');
+                            // Mettre à jour l'ID de la commande
+                            commandeId = data.commande_id;
+
+                            // Générer le tableau des détails de la commande
+                            let tableauCommande = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Plat</th>
+                                <th>Prix</th>
+                                <th>Quantité</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                            data.panier.forEach(item => {
+                                let totalItem = item.prix * item.quantite;
+                                tableauCommande += `
+                        <tr>
+                            <td>${item.nom}</td>
+                            <td>${item.prix} XOF</td>
+                            <td>${item.quantite}</td>
+                            <td>${totalItem} XOF</td>
+                        </tr>`;
+                            });
+                            tableauCommande += `
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total de la commande :</strong></td>
+                        <td><strong>${data.total_commande} XOF</strong></td>
+                    </tr>
+                </tbody>
+                </table>`;
+
+                            // Mise à jour du contenu du modal
+                            const modalBody = document.querySelector('#successModal .modal-body');
+                            modalBody.innerHTML = `
+                        <p style="color:#000;">Votre commande a été enregistrée avec succès, mais elle n'est pas encore payée. Si vous souhaitez payer plus tard, veuillez retenir le code client suivant :</p>
+                        <p><strong style="color:#000;">Client ID: ${data.client_id}</strong></p>
+                        ${tableauCommande}
+                    `;
+
+                            // Afficher le modal
+                            new bootstrap.Modal(document.querySelector('#successModal')).show();
+
+                            // Mettre à jour le widget Kkiapay avec l'ID de la commande
+                            prepareKkiapayWidget();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                    });
+            });
+
+            document.querySelector('#cancelOrder').addEventListener('click', function() {
+                // Vérifier que l'ID de la commande est défini
+                if (!commandeId) {
+                    console.error('ID de la commande non défini.');
+                    return;
+                }
+
+                // Envoyer la requête AJAX pour annuler la commande
+                fetch(`/cancel-commande/${commandeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            status: 'Canceled'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('La commande a été annulée avec succès.');
+                            localStorage.removeItem('panier');
+                            window.location.href =
+                                '/'; // Rediriger ou rafraîchir la page après annulation
+                        } else {
+                            alert('Une erreur est survenue lors de l\'annulation de la commande.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Une erreur est survenue lors de l\'annulation de la commande.');
+                    });
+            });
+
+            afficherPanier();
+            prepareKkiapayWidget();
+        });
+    </script>
+    <script>
+        window.addEventListener('load', () => {
+            let menuContainer = document.querySelector('.menu-container');
+            if (menuContainer) {
+                let menuIsotope = new Isotope(menuContainer, {
+                    itemSelector: '.menu-item',
+                    layoutMode: 'fitRows'
+                });
+
+                let menuFilters = document.querySelectorAll('#menu-flters li');
+
+                menuFilters.forEach(filter => {
+                    filter.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        menuFilters.forEach(el => el.classList.remove('filter-active'));
+                        this.classList.add('filter-active');
+
+                        menuIsotope.arrange({
+                            filter: this.getAttribute('data-filter')
+                        });
+                        menuIsotope.on('arrangeComplete', function() {
+                            AOS.refresh();
+                        });
+                    });
+                });
+
+                function filterByPrice() {
+                    let maxPrice = parseFloat(document.getElementById('price-filter').value);
+                    if (!isNaN(maxPrice)) {
+                        menuIsotope.arrange({
+                            filter: function(itemElem) {
+                                // Utiliser un regex pour extraire le prix en tant que nombre
+                                let priceText = itemElem.querySelector('.menu-content span')
+                                    .textContent;
+                                let price = parseFloat(priceText.replace(/[^\d.-]/g, ''));
+                                return price <= maxPrice;
+                            }
+                        });
+                        menuIsotope.on('arrangeComplete', function() {
+                            AOS.refresh();
+                        });
+                    }
+                }
+
+                document.getElementById('price-filter').addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        filterByPrice();
+                    }
+                });
+
+                document.getElementById('filter-btn').addEventListener('click', function() {
+                    filterByPrice();
+                });
+            }
+        });
+    </script>
+    <script>
+        document.querySelector('#verify-code-button').addEventListener('click', function() {
+            let clientId = document.querySelector('#client-id-input').value;
+
+            console.log('Client ID:', clientId); // Debugging log
+
+            if (!clientId) {
+                alert('Veuillez entrer un code valide.');
+                return;
+            }
+
+            // Disable the button and show a loader
+            this.disabled = true;
+            document.querySelector('#loader').style.display = 'block';
+
+            // Send a GET request to retrieve the order details
+            fetch(`/get-order-details?client_id=${clientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Order details:', data); // Debugging log for order details
+
+                    // Hide loader
+                    document.querySelector('#loader').style.display = 'none';
+                    this.disabled = false;
+
+                    if (data.status) {
+                        let tableauCommande = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Plat</th>
+                                <th>Prix</th>
+                                <th>Quantité</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                        data.panier.forEach(item => {
+                            let totalItem = item.prix * item.quantite;
+                            tableauCommande += `
+                        <tr>
+                            <td>${item.nom}</td>
+                            <td>${item.prix} XOF</td>
+                            <td>${item.quantite}</td>
+                            <td>${totalItem} XOF</td>
+                        </tr>`;
+                        });
+
+                        tableauCommande += `
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total :</strong></td>
+                        <td><strong>${data.total_commande} XOF</strong></td>
+                    </tr>
+                </tbody>
+                </table>`;
+
+                        // Update the modal body with the order details and the Kkiapay widget
+                        const modalBody = document.querySelector('#orderDetailsModal .modal-body');
+                        modalBody.innerHTML = `
+                    ${tableauCommande}
+                    <kkiapay-widget 
+                        amount="${data.total_commande}" 
+                        key="b7b8a6c0652211efbf02478c5adba4b8"
+                        position="center" 
+                        sandbox="true" 
+                        callback="http://127.0.0.1:8000/pay/callback">
+                    </kkiapay-widget>
+                `;
+
+                        // Show the modal
+                        const orderDetailsModal = new bootstrap.Modal(document.querySelector(
+                            '#orderDetailsModal'));
+                        orderDetailsModal.show();
+
+                        console.log('Kkiapay widget initialized with amount:', data
+                        .total_commande); // Debugging log for Kkiapay
+
+                    } else {
+                        alert(data.message);
+                        console.log('Error:', data.message); // Debugging log for error
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error); // Debugging log for request error
+                });
+        });
+
+        // Load Kkiapay script dynamically if not already loaded
+        if (!document.querySelector('script[src="https://cdn.kkiapay.me/k.js"]')) {
+            const kkiapayScript = document.createElement('script');
+            kkiapayScript.setAttribute('src', 'https://cdn.kkiapay.me/k.js');
+            document.body.appendChild(kkiapayScript);
+
+            console.log('Kkiapay script loaded'); // Debugging log for script load
+        }
+    </script>
+
+
+
+
 
 </body>
 
