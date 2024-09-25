@@ -1,0 +1,17 @@
+{
+    "builds": [
+        {
+            "src": "composer.json",
+            "use": "@vercel/php",
+            "config": {
+                "phpVersion": "8.1"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/public/$1"
+        }
+    ]
+}
