@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('commandes', function (Blueprint $table) {
             $table->id();
             $table->string('client_id');
+            $table->string('nom_client');
             $table->decimal('montant', 8, 2);
-            $table->enum('status', ['pending', 'paid', 'delivered'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'delivered','canceled'])->default('pending');
             $table->string('qr_code')->nullable();
             $table->timestamps();
         });
