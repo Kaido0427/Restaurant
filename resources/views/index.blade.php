@@ -42,7 +42,19 @@
 </head>
 
 <body>
+    @if (session('success'))
+        <div class="alert alert-success fade-out" role="alert"
+            style="z-index: 9999; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);">
+            {{ session('success') }}
+        </div>
+    @endif
 
+    @if (session('error'))
+        <div class="alert alert-danger fade-out" role="alert"
+            style="z-index: 9999; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);">
+            {{ session('error') }}
+        </div>
+    @endif
     <!-- ======= Top Bar ======= -->
     <div id="topbar" class="d-flex align-items-center fixed-top">
         <div class="container d-flex justify-content-center justify-content-md-between">
@@ -513,6 +525,17 @@
             <span>XOF ${total}</span>
         `;
                 document.querySelector('#cart-count').textContent = totalItems;
+
+                toggleCommandeButton(totalItems > 0);
+            }
+
+            function toggleCommandeButton(isVisible) {
+                const commandeButton = document.getElementById('save-commande');
+                if (isVisible) {
+                    commandeButton.style.display = 'block';
+                } else {
+                    commandeButton.style.display = 'none';
+                }
             }
 
             function prepareKkiapayWidget() {
@@ -770,68 +793,76 @@
                     document.querySelector('#loader').style.display = 'none';
                     this.disabled = false;
 
+                    const modalBody = document.querySelector('#orderDetailsModal .modal-body');
                     if (data.status) {
-                        let tableauCommande = `
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Plat</th>
-                                <th>Prix</th>
-                                <th>Quantité</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                        if (data.panier) {
+                            // Si la commande est "pending" ou "canceled", afficher les détails de la commande
+                            let tableauCommande = `
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Plat</th>
+                                        <th>Prix</th>
+                                        <th>Quantité</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
 
-                        data.panier.forEach(item => {
-                            let totalItem = item.prix * item.quantite;
+                            data.panier.forEach(item => {
+                                let totalItem = item.prix * item.quantite;
+                                tableauCommande += `
+                                <tr>
+                                    <td>${item.nom}</td>
+                                    <td>${item.prix} XOF</td>
+                                    <td>${item.quantite}</td>
+                                    <td>${totalItem} XOF</td>
+                                </tr>`;
+                            });
+
                             tableauCommande += `
-                        <tr>
-                            <td>${item.nom}</td>
-                            <td>${item.prix} XOF</td>
-                            <td>${item.quantite}</td>
-                            <td>${totalItem} XOF</td>
-                        </tr>`;
-                        });
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total :</strong></td>
+                                <td><strong>${data.total_commande} XOF</strong></td>
+                            </tr>
+                            </tbody>
+                            </table>`;
 
-                        tableauCommande += `
-                    <tr>
-                        <td colspan="3" class="text-end"><strong>Total :</strong></td>
-                        <td><strong>${data.total_commande} XOF</strong></td>
-                    </tr>
-                </tbody>
-                </table>`;
+                            // Update the modal body with the order details and the Kkiapay widget
+                            modalBody.innerHTML = `
+                            ${tableauCommande}
+                            <kkiapay-widget 
+                                amount="${data.total_commande}" 
+                                key="b7b8a6c0652211efbf02478c5adba4b8"
+                                position="center" 
+                                sandbox="true" 
+                                callback="http://127.0.0.1:8000/pay/callback">
+                            </kkiapay-widget>`;
 
-                        // Update the modal body with the order details and the Kkiapay widget
-                        const modalBody = document.querySelector('#orderDetailsModal .modal-body');
-                        modalBody.innerHTML = `
-                    ${tableauCommande}
-                    <kkiapay-widget 
-                        amount="${data.total_commande}" 
-                        key="b7b8a6c0652211efbf02478c5adba4b8"
-                        position="center" 
-                        sandbox="true" 
-                        callback="http://127.0.0.1:8000/pay/callback">
-                    </kkiapay-widget>
-                `;
+                            console.log('Kkiapay widget initialized with amount:', data
+                                .total_commande); // Debugging log for Kkiapay
+                        } else {
+                            // Si la commande est déjà payée, afficher uniquement le QR code et un message
+                            modalBody.innerHTML = `
+                            <div class="alert alert-success" role="alert">
+                                ${data.message}
+                            </div>
+                            <img src="${data.qr_code}" alt="QR Code" class="img-fluid" />
+                            `;
+
+                            console.log('QR Code displayed:', data.qr_code); // Debugging log for QR code
+                        }
 
                         // Show the modal
                         const orderDetailsModal = new bootstrap.Modal(document.querySelector(
                             '#orderDetailsModal'));
                         orderDetailsModal.show();
-
-                        console.log('Kkiapay widget initialized with amount:', data
-                            .total_commande); // Debugging log for Kkiapay
-
                     } else {
-                        const modalBody = document.querySelector('#orderDetailsModal .modal-body');
-
                         // Afficher le message d'erreur dans le modal
                         modalBody.innerHTML = `
-                          <div class="alert alert-danger" role="alert">
-                          ${data.message}
-                           </div>
-                         `;
+                        <div class="alert alert-danger" role="alert">
+                            ${data.message}
+                        </div>`;
                         console.log('Error:', data.message); // Debugging log for error
                     }
                 })
@@ -848,6 +879,34 @@
 
             console.log('Kkiapay script loaded'); // Debugging log for script load
         }
+    </script>
+    <style>
+        /* Style pour faire disparaître progressivement l'alerte */
+        .fade-out {
+            transition: opacity 0.5s ease-in-out;
+            opacity: 1;
+        }
+
+        .fade-out.hidden {
+            opacity: 0;
+        }
+    </style>
+
+    <script>
+        // Fonction pour faire disparaître l'alerte après 3 secondes
+        document.addEventListener('DOMContentLoaded', function() {
+            let alertElement = document.querySelector('.alert');
+            if (alertElement) {
+                setTimeout(function() {
+                    alertElement.classList.add('hidden'); // Réduit l'opacité
+                }, 3000); // 3 secondes avant de commencer la disparition
+
+                // Supprime l'alerte du DOM après la transition d'opacité
+                setTimeout(function() {
+                    alertElement.remove();
+                }, 3500); // 3.5 secondes pour laisser le temps à la transition de finir
+            }
+        });
     </script>
 </body>
 

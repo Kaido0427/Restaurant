@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\clientController;
+use App\Models\commande;
 use App\Models\menu;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -29,5 +30,28 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::post('/save-commande', [clientController::class, 'enregistrerCommande']);
 route::post('/cancel-commande/{id}', [clientController::class, 'annulerCommande']);
 Route::get('/pay/callback', [clientController::class, 'payOrder']);
-route::get('/commande/livraison/{id}',[clientController::class, 'livrerCommande'] )->middleware('auth')->name('deliver.order');
-route::get('/get-order-details',[clientController::class,'getOrderDetails']);
+route::get('/get-order-details', [clientController::class, 'getOrderDetails']);
+
+
+Route::get('/livraison/{id}', function ($id) {
+    $commande = commande::find($id);
+    
+    if ($commande) {
+        $commandeMenus = $commande->commandeMenus()->with('menu')->get();
+        $totalAmount = $commandeMenus->sum(fn($item) => $item->menu->prix * $item->quantity);
+        
+        return view('livraison', [
+            'commande' => $commande,
+            'commandeMenus' => $commandeMenus, 
+            'totalAmount' => $totalAmount,
+            'qrCodePath' => 'qrCodes/' . $commande->qr_code
+        ]);
+    } else {
+        abort(404, 'Commande non trouvée');
+    }
+})->name('livraison');
+
+// web.php
+Route::post('/finaliser-commande/{id}', [ClientController::class, 'finaliserCommande'])
+    ->middleware('auth')
+    ->name('finaliser-commande');

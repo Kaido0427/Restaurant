@@ -113,7 +113,7 @@ class clientController extends Controller
             // Vérifier la transaction
             $transactionId = $request->input('transaction_id');
             $transaction = $kkiapay->verifyTransaction($transactionId);
-           
+
             // Récupérer l'ID de la commande depuis la session
             $commandeId = $request->session()->get('commande_id');
 
@@ -129,7 +129,7 @@ class clientController extends Controller
                 ]);
 
                 // URL de validation pour les serveurs du restaurant
-                $qrCodeData = route('deliver.order', ['id' => $commande->id]);
+                $qrCodeData = route('livraison', ['id' => $commande->id]);
 
                 // Générer le QR code avec Endroid/qr-code
                 $result = Builder::create()
@@ -148,7 +148,7 @@ class clientController extends Controller
                 // Mettre à jour la commande avec le chemin du QR code
                 $commande->update(['qr_code' => $qrCodePath]);
 
-                $message = "Votre commande a été payée avec succès. Veuillez scanner le code QR avec un serveur pour finaliser la commande. Prenez une capture d'écran au cas où vous souhaiteriez le faire plus tard.";
+                $message = "Votre commande a été payée avec succès. Pour finaliser votre commande, veuillez faire scanner le code QR par un serveur. Si vous souhaitez finaliser votre commande plus tard, notez le code client suivant : " . $commande->client_id . ".";
 
                 return view('livraison', [
                     'message' => $message,
@@ -168,74 +168,97 @@ class clientController extends Controller
     }
 
 
-    public function livrerCommande($id)
-    {
-        try {
-            // Vérifier que l'utilisateur est connecté
-            if (!auth()->check()) {
-                return redirect()->route('index')->with('error', 'Vous devez être connecté pour livrer la commande.');
-            }
-
-            // Récupérer la commande par son ID
-            $commande = commande::findOrFail($id);
-
-            // Mettre à jour le statut de la commande à "delivered"
-            $commande->update(['status' => 'delivered']);
-
-            return redirect()->route('index')->with('success', 'Commande livrée avec succès.');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la livraison de la commande.', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return redirect()->route('index')->with('error', 'Erreur lors de la livraison de la commande.');
-        }
-    }
-
     public function getOrderDetails(Request $request)
     {
         try {
-            // Retrieve the client ID from the request
+            // Récupérer l'ID du client depuis la requête
             $clientId = $request->input('client_id');
 
-            // Find the order based on the client ID
-            $commande = commande::where('client_id', $clientId)
-                    ->whereIn('status', ['pending', 'canceled'])
-                    ->first();
-
+            // Trouver la commande correspondant à l'ID du client
+            $commande = commande::where('client_id', $clientId)->first();
 
             if ($commande) {
-                // Fetch the order details with related menus
-                $commandeMenus = $commande->commandeMenus()->with('menu')->get();
+                // Si le statut est "pending" ou "canceled", renvoyer les détails complets de la commande
+                if (in_array($commande->status, ['pending', 'canceled'])) {
+                    // Récupérer les menus associés à la commande
+                    $commandeMenus = $commande->commandeMenus()->with('menu')->get();
 
-                // Calculate the total amount for the order
-                $totalAmount = 0;
-                foreach ($commandeMenus as $commandeMenu) {
-                    $totalAmount += $commandeMenu->menu->prix * $commandeMenu->quantity;
+                    // Calculer le montant total de la commande
+                    $totalAmount = 0;
+                    foreach ($commandeMenus as $commandeMenu) {
+                        $totalAmount += $commandeMenu->menu->prix * $commandeMenu->quantity;
+                    }
+
+                    // Format de réponse pour une commande "pending" ou "canceled"
+                    $response = [
+                        'status' => true,
+                        'commande_id' => $commande->id,
+                        'client_id' => $commande->client_id,
+                        'total_commande' => $totalAmount,
+                        'panier' => $commandeMenus->map(function ($item) {
+                            return [
+                                'nom' => $item->menu->nom,
+                                'prix' => $item->menu->prix,
+                                'quantite' => $item->quantity
+                            ];
+                        })
+                    ];
+
+                    return response()->json($response);
                 }
+                // Si la commande a déjà été payée (statut autre que "pending" ou "canceled")
+                else {
+                    // Vérifier si le QR code existe
+                    $qrCodeFileName = $commande->qr_code; // Assurez-vous que $commande->qr_code contient juste le nom du fichier (par exemple, '61.png')
 
-                // Format the response with order details
-                $response = [
-                    'status' => true,
-                    'commande_id' => $commande->id,
-                    'client_id' => $commande->client_id,
-                    'total_commande' => $totalAmount,
-                    'panier' => $commandeMenus->map(function ($item) {
-                        return [
-                            'nom' => $item->menu->nom,
-                            'prix' => $item->menu->prix,
-                            'quantite' => $item->quantity
-                        ];
-                    })
-                ];
 
-                return response()->json($response);
+                    // Vérifier si le fichier existe
+                    if (file_exists($qrCodeFileName)) {
+                        // Format de réponse pour une commande payée
+                        return response()->json([
+                            'status' => true,
+                            'message' => 'Commande déjà payée. Veuillez vous rapprocher d\'un serveur pour finaliser.',
+                            'qr_code' => url($qrCodeFileName) // URL du QR code
+                        ]);
+                    } else {
+                        // Si le QR code est introuvable
+                        return response()->json(['status' => false, 'message' => 'QR code introuvable pour cette commande.']);
+                    }
+                }
             } else {
-                return response()->json(['status' => false, 'message' => 'Commande introuvable ou deja payé.']);
+                // Si aucune commande n'est trouvée avec cet ID de client
+                return response()->json(['status' => false, 'message' => 'Commande introuvable.']);
             }
         } catch (\Exception $e) {
+            // Gestion des exceptions en cas d'erreur serveur
             return response()->json(['status' => false, 'message' => 'Erreur serveur.']);
+        }
+    }
+
+    public function finaliserCommande($id)
+    {
+        try {
+            // Recherche de la commande
+            $commande = commande::find($id);
+
+            // Vérifier si la commande existe
+            if ($commande) {
+                // Mettre à jour le statut de la commande
+                $commande->status = 'completed'; // Marquer comme complétée ou tout autre statut nécessaire
+                $commande->save();
+
+                Log::info("Commande #{$id} finalisée avec succès.", ['commande' => $commande]);
+
+                return redirect('/')->with('success', 'Commande finalisée avec succès.');
+            } else {
+                Log::warning("Commande #{$id} non trouvée.");
+
+                return redirect('/')->with('error', 'Commande non trouvée.');
+            }
+        } catch (\Exception $e) {
+            Log::error("Erreur lors de la finalisation de la commande #{$id}: " . $e->getMessage());
+
+            return redirect('/')->with('error', 'Une erreur est survenue lors de la finalisation de la commande.');
         }
     }
 }
