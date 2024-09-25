@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\clientController;
+use App\Http\Controllers\menuController;
 use App\Models\commande;
 use App\Models\menu;
 use Illuminate\Support\Facades\Auth;
@@ -77,3 +78,13 @@ Route::get('/livraison/{id}', function ($id) {
 Route::post('/finaliser-commande/{id}', [ClientController::class, 'finaliserCommande'])
     ->middleware('auth')
     ->name('finaliser-commande');
+
+
+// Route pour stocker un nouveau menu
+Route::post('/menus/store', [menuController::class, 'store'])->name('menus.store');
+
+// Route pour mettre à jour un menu existant
+Route::put('/menus/update/{id}', [MenuController::class, 'update'])->name('menus.update');
+
+// Route pour supprimer un menu
+Route::delete('/menus/delete/{id}', [MenuController::class, 'delete'])->name('menus.destroy');

@@ -23,6 +23,22 @@
 </head>
 
 <body>
+    <div class="position-relative">
+        <!-- Affichage des messages de session -->
+        @if (session('success'))
+            <div class="alert alert-success fade-out" role="alert"
+                style="z-index: 9999; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger fade-out" role="alert"
+                style="z-index: 9999; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);">
+                {{ session('error') }}
+            </div>
+        @endif
+    </div>
     <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
         <div class="app-header header-shadow">
             <div class="app-header__logo">
@@ -150,7 +166,7 @@
 
                             </li>
                             <li>
-                                <a href="#" class="mm-active">
+                                <a href="#menuList" class="mm-active">
                                     <i class="metismenu-icon pe-7s-rocket"></i>
                                     Gestion des Menus
                                 </a>
@@ -368,111 +384,198 @@
                         </div>
                     </div>
 
-                    <div id="prestaByLoc" class="row">
+                    <div id="menuList" class="row">
                         <div class="col-md-12">
                             <div class="main-card mb-3 card">
-                                <div class="card-header">Liste des prestataires par localité
-
+                                <div class="card-header">
+                                    Liste des menus
+                                    <!-- Button to trigger the add menu form -->
+                                    <button id="addMenuBtn" class="btn btn-primary float-right">Ajouter un
+                                        menu</button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="align-middle mb-0 table table-borderless table-striped table-hover">
                                         <thead>
                                             <tr>
-                                                <th class="text-center" colspan="3">Quartier</th>
-                                                <!-- Colspan ajusté -->
-                                            </tr>
-                                            <tr>
-                                                <th class="text-center">Nom</th>
-                                                <th class="text-center">Prénoms</th>
-                                                <th class="text-center">Profession</th>
+                                                <th>Nom</th>
+                                                <th>Description</th>
+                                                <th>Prix</th>
+                                                <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @php
-                                                $prestatairesByLocation = [];
-                                            @endphp
-                                            @foreach ($prestatairesByLocation as $locationId => $prestataires)
-                                                @php
-                                                    // Récupérer le quartier correspondant
-                                                    $quartier = $locations->find($locationId);
-                                                @endphp
-                                                <!-- Affichage du quartier -->
+                                            @foreach ($menus as $menu)
                                                 <tr>
-                                                    <td colspan="3" class="text-center" style="font-weight:bold;">
-                                                        {{ $quartier->quartiers }}
+                                                    <td>{{ $menu->nom }}</td>
+                                                    <td>{{ $menu->description }}</td>
+                                                    <td>{{ $menu->prix }} XOF</td>
+                                                    <td>
+                                                        <!-- Update icon (SVG) -->
+                                                        <a class="btn btn-outline-warning"
+                                                            onclick="openUpdateForm('{{ $menu->id }}', '{{ $menu->nom }}', '{{ $menu->description }}', '{{ $menu->prix }}', '{{ $menu->image }}')">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                height="16" fill="currentColor"
+                                                                class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                                                <path
+                                                                    d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                                                <path fill-rule="evenodd"
+                                                                    d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                                                            </svg>
+                                                        </a>
+                                                        <!-- Delete icon (SVG) -->
+                                                        <a class="btn btn-outline-danger"
+                                                            href="{{ route('menus.destroy', $menu->id) }}"
+                                                            onclick="event.preventDefault(); if(confirm('Are you sure?')) document.getElementById('delete-form-{{ $menu->id }}').submit();">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                                height="16" fill="currentColor"
+                                                                class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                                                                <path
+                                                                    d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5" />
+                                                            </svg>
+                                                        </a>
+                                                        <form id="delete-form-{{ $menu->id }}"
+                                                            action="{{ route('menus.destroy', $menu->id) }}"
+                                                            method="POST" style="display: none;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                        </form>
                                                     </td>
                                                 </tr>
-
-                                                <!-- Affichage des prestataires -->
-                                                @foreach ($prestataires as $prestataire)
-                                                    <tr>
-                                                        <td class="text-center">{{ $prestataire->nom }}</td>
-                                                        <td class="text-center">{{ $prestataire->prenom }}</td>
-                                                        <td class="text-center">
-                                                            @if ($prestataire->service->nom === 'Autres')
-                                                                @php
-                                                                    $autresService = DB::table('autres_services')
-                                                                        ->where('prestataire_id', $prestataire->id) // Remplacez 'autres_service_id' par le nom de la colonne qui fait le lien
-                                                                        ->value('nom');
-                                                                @endphp
-                                                                {{ $autresService }}
-                                                            @else
-                                                                {{ $prestataire->service->nom }}
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
                                             @endforeach
                                         </tbody>
                                     </table>
-
-
-                                </div>
-                                <div class="d-block text-center card-footer">
-
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-
-                </div>
-                <div class="modal fade" id="updatePasswordModal" tabindex="-1"
-                    aria-labelledby="updatePasswordModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="updatePasswordModalLabel">Mettre à jour le mot de passe
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+                        <!-- Add menu form (hidden by default) -->
+                        <div id="overlay" class="overlay d-none"></div>
+                        <!-- Add menu form (hidden by default) -->
+                        <div id="addMenuForm" class="d-none"
+                            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: white; padding: 20px; border-radius: 10px; width: 400px; max-width: 90%; margin: 0 10px;">
+                            <div class="d-flex justify-content-end">
+                                <button id="closeMenuForm" class="btn btn-danger">X</button>
                             </div>
-                            <div class="modal-body">
-                                <!-- Formulaire de mise à jour du mot de passe -->
-                                <form action="" method="POST">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="currentPassword" class="form-label">Mot de passe actuel</label>
-                                        <input type="password" class="form-control" id="currentPassword"
-                                            name="current_password" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="newPassword" class="form-label">Nouveau mot de passe</label>
-                                        <input type="password" class="form-control" id="newPassword"
-                                            name="new_password" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="newPasswordConfirmation" class="form-label">Confirmer le nouveau
-                                            mot de passe</label>
-                                        <input type="password" class="form-control" id="newPasswordConfirmation"
-                                            name="new_password_confirmation" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
-                                </form>
-                            </div>
+                            <h4>Ajouter un nouveau menu</h4>
+                            <form action="{{ route('menus.store') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="form-group">
+                                    <label for="nom">Nom du menu</label>
+                                    <input type="text" class="form-control" name="nom" id="nom"
+                                        required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <textarea class="form-control" name="description" id="description"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="prix">Prix</label>
+                                    <input type="number" class="form-control" name="prix" id="prix"
+                                        required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="image">Image</label>
+                                    <input type="file" class="form-control" name="image" id="image">
+                                </div>
+                                <button type="submit" class="btn btn-success">Ajouter</button>
+                            </form>
                         </div>
+
+                        <style>
+                            @media (max-width: 768px) {
+                                #addMenuForm {
+                                    width: 90%;
+                                    /* Reduce width on mobile */
+                                    max-width: 90%;
+                                    /* Ensure form doesn't exceed viewport width */
+                                    padding: 10px;
+                                    /* Reduce padding */
+                                    margin: 20px;
+                                    /* Add margin for better spacing */
+                                }
+                            }
+
+                            .overlay {
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: rgba(0, 0, 0, 0.5);
+                                /* Semi-transparent dark background */
+                                backdrop-filter: blur(5px);
+                                /* Blur effect */
+                                z-index: 9998;
+                                /* Make sure it’s behind the form but above other content */
+                                display: none;
+                                /* Hidden by default */
+                            }
+
+                            /* Make overlay visible */
+                            .overlay.d-block {
+                                display: block;
+                            }
+                        </style>
+
+
                     </div>
+
+                    <script>
+                        document.getElementById('addMenuBtn').addEventListener('click', function() {
+                            document.getElementById('addMenuForm').classList.remove('d-none');
+                            document.getElementById('overlay').classList.add('d-block');
+                        });
+
+                        document.getElementById('closeMenuForm').addEventListener('click', function() {
+                            document.getElementById('addMenuForm').classList.add('d-none');
+                            document.getElementById('overlay').classList.remove('d-block');
+                        });
+                    </script>
+
                 </div>
+                <!-- Update menu form (hidden by default) -->
+                <div id="updateMenuForm" class="d-none"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: white; padding: 20px; border-radius: 10px; width: 400px; max-width: 90%; margin: 0 10px;">
+                    <div class="d-flex justify-content-end">
+                        <button id="closeUpdateMenuForm" class="btn btn-danger">X</button>
+                    </div>
+                    <h4>Modifier le menu</h4>
+                    <form id="updateMenuFormAction" action="" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="id" id="updateMenuId">
+                        <div class="form-group">
+                            <label for="updateNom">Nom du menu</label>
+                            <input type="text" class="form-control" name="nom" id="updateNom" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateDescription">Description</label>
+                            <textarea class="form-control" name="description" id="updateDescription"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="updatePrix">Prix</label>
+                            <input type="number" class="form-control" name="prix" id="updatePrix" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateImage">Image</label>
+                            <input type="file" class="form-control" name="image" id="updateImage">
+                        </div>
+                        <button type="submit" class="btn btn-success">Mettre à jour</button>
+                    </form>
+                </div>
+
+                <style>
+                    @media (max-width: 768px) {
+                        #updateMenuForm {
+                            width: 90%;
+                            max-width: 90%;
+                            padding: 10px;
+                            margin: 20px;
+                        }
+                    }
+                </style>
+
+
+
                 <!-- Div qui affiche le QR Code en grand -->
                 <div id="qrCodeDisplay" class="qr-code-overlay d-none">
                     <div class="qr-code-content">
@@ -567,6 +670,56 @@
         </div>
     </div>
     <script type="text/javascript" src="https://demo.dashboardpack.com/architectui-html-free/assets/scripts/main.js">
+    </script>
+
+    <style>
+        /* Style pour faire disparaître progressivement l'alerte */
+        .fade-out {
+            transition: opacity 0.5s ease-in-out;
+            opacity: 1;
+        }
+
+        .fade-out.hidden {
+            opacity: 0;
+        }
+    </style>
+
+    <script>
+        // Fonction pour faire disparaître l'alerte après 3 secondes
+        document.addEventListener('DOMContentLoaded', function() {
+            let alertElement = document.querySelector('.alert');
+            if (alertElement) {
+                setTimeout(function() {
+                    alertElement.classList.add('hidden'); // Réduit l'opacité
+                }, 3000); // 3 secondes avant de commencer la disparition
+
+                // Supprime l'alerte du DOM après la transition d'opacité
+                setTimeout(function() {
+                    alertElement.remove();
+                }, 3500); // 3.5 secondes pour laisser le temps à la transition de finir
+            }
+        });
+    </script>
+    <script>
+        function openUpdateForm(id, nom, description, prix, image) {
+            document.getElementById('updateMenuForm').classList.remove('d-none');
+            document.getElementById('overlay').classList.add('d-block');
+
+            document.getElementById('updateMenuId').value = id;
+            document.getElementById('updateNom').value = nom;
+            document.getElementById('updateDescription').value = description;
+            document.getElementById('updatePrix').value = prix;
+            // Set the action URL of the form
+            document.getElementById('updateMenuFormAction').action = `{{ route('menus.update', '') }}/${id}`;
+
+            // If needed, you can handle the image preview or reset
+            // document.getElementById('updateImage').value = '';
+        }
+
+        document.getElementById('closeUpdateMenuForm').addEventListener('click', function() {
+            document.getElementById('updateMenuForm').classList.add('d-none');
+            document.getElementById('overlay').classList.remove('d-block');
+        });
     </script>
 
 </body>
