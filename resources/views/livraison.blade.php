@@ -17,20 +17,35 @@
             </div>
         @endif
     </div>
+
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title">Votre commande est en attente de finalisation</h5>
-                        <p class="card-text">{{ $message }}</p>
+                        <h5 class="card-title">
+                            @auth
+                                <p class="card-text"> Le recu de payement a été envoyée à {{ $commande->nom_client }}.
+                                    Veuillez finaliser sa
+                                    commande</p>
+                            @else
+                                <p class="card-text">Votre commande est en attente de finalisation</p>
+                                <p class="card-text">{{ $message }}</p>
+                            @endauth
+                        </h5>
 
-                        @if (isset($qrCodePath))
-                            <div class="my-4">
-                                <img src="{{ asset($qrCodePath) }}" alt="QR Code de la commande" class="img-fluid"
-                                    style="max-width: 250px;">
-                            </div>
-                        @endif
+
+
+                        <!-- Affichage du QR Code uniquement pour les non-authentifiés -->
+                        @guest
+                            @if (isset($qrCodePath))
+                                <div class="my-4">
+                                    <img src="{{ asset($qrCodePath) }}" alt="QR Code de la commande" class="img-fluid"
+                                        style="max-width: 250px;">
+                                </div>
+                            @endif
+                        @endguest
+
                         @auth
                             <!-- Affichage des détails de la commande -->
                             <table class="table mt-4">
@@ -65,13 +80,13 @@
                             </form>
                         @endauth
 
-
                         <a href="/" class="btn btn-warning mt-3">Retour à l'accueil</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <style>
         /* Style pour faire disparaître progressivement l'alerte */
         .fade-out {

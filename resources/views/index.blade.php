@@ -65,11 +65,9 @@
             </div>
 
             <div class="languages d-none d-md-flex align-items-center">
-                <ul>
-                    <li>Login</li>
 
-                </ul>
             </div>
+
         </div>
     </div>
 
@@ -87,6 +85,23 @@
                     <li><a class="nav-link scrollto" href="#about">About</a></li>
 
                     <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+
+                    @auth
+                        <li><a href="{{ route('home') }}">Tableau de bord</a></li>
+                        <li>
+                            <a href="{{ route('logout') }}"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                Logout
+                            </a>
+                            <!-- Formulaire de déconnexion -->
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                        </li>
+                    @else
+                        <li><a href="{{ route('login') }}">Login</a></li>
+                    @endauth
+
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav><!-- .navbar -->

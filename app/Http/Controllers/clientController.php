@@ -244,7 +244,7 @@ class clientController extends Controller
             // Vérifier si la commande existe
             if ($commande) {
                 // Mettre à jour le statut de la commande
-                $commande->status = 'completed'; // Marquer comme complétée ou tout autre statut nécessaire
+                $commande->status = 'delivered'; // Marquer comme complétée ou tout autre statut nécessaire
                 $commande->save();
 
                 Log::info("Commande #{$id} finalisée avec succès.", ['commande' => $commande]);
