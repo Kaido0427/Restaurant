@@ -12,7 +12,7 @@ export default defineConfig({
     }),
   ],
   build: {
-    outDir: 'public/build',
+    outDir: 'build',
     assetsDir: '',
     manifest: true,
   },
