@@ -821,10 +821,17 @@
                         orderDetailsModal.show();
 
                         console.log('Kkiapay widget initialized with amount:', data
-                        .total_commande); // Debugging log for Kkiapay
+                            .total_commande); // Debugging log for Kkiapay
 
                     } else {
-                        alert(data.message);
+                        const modalBody = document.querySelector('#orderDetailsModal .modal-body');
+
+                        // Afficher le message d'erreur dans le modal
+                        modalBody.innerHTML = `
+                          <div class="alert alert-danger" role="alert">
+                          ${data.message}
+                           </div>
+                         `;
                         console.log('Error:', data.message); // Debugging log for error
                     }
                 })
@@ -842,11 +849,6 @@
             console.log('Kkiapay script loaded'); // Debugging log for script load
         }
     </script>
-
-
-
-
-
 </body>
 
 </html>

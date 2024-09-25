@@ -200,7 +200,10 @@ class clientController extends Controller
             $clientId = $request->input('client_id');
 
             // Find the order based on the client ID
-            $commande = commande::where('client_id', $clientId)->first();
+            $commande = commande::where('client_id', $clientId)
+                    ->whereIn('status', ['pending', 'canceled'])
+                    ->first();
+
 
             if ($commande) {
                 // Fetch the order details with related menus
@@ -229,7 +232,7 @@ class clientController extends Controller
 
                 return response()->json($response);
             } else {
-                return response()->json(['status' => false, 'message' => 'Commande introuvable.']);
+                return response()->json(['status' => false, 'message' => 'Commande introuvable ou deja payé.']);
             }
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Erreur serveur.']);
