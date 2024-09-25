@@ -1,8 +1,7 @@
 {
     "version": 2,
     "builds": [
-        { "src": "public/index.php", "use": "vercel-php@0.3.1" },
-        { "src": "public/static/**", "use": "@vercel/static" }
+        { "src": "public/index.php", "use": "vercel-php@0.3.1" }
     ],
     "routes": [
         {
@@ -11,9 +10,9 @@
         }
     ],
     "env": {
-        "APP_NAME": "Mon restaurant",
+        "APP_NAME": "Vercel Laravel",
         "APP_ENV": "production",
-        "APP_DEBUG": "true",
+        "APP_DEBUG": "false",
         "APP_URL": "https://php-laravel.vercel.app",
         "CACHE_DRIVER": "file",
         "SESSION_DRIVER": "file",
