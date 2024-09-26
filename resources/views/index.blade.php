@@ -10,7 +10,7 @@
     <meta content="" name="keywords">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-   
+
     <link href="{{ asset('assets/img/apple-touch-icon.png" rel="apple-touch-icon') }}">
 
     <!-- Google Fonts -->
@@ -30,7 +30,6 @@
 
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
-
 
     <!-- =======================================================
   * Template Name: Restaurantly - v3.9.1
