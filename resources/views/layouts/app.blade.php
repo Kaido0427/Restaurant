@@ -15,8 +15,8 @@
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
-    <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5+5hb7QEmwRwe4BjrIfi8NjRAd/tYc5iSXTc/j1J" crossorigin="anonymous">
+
 </head>
 <body>
     <div id="app">
@@ -78,5 +78,7 @@
             @yield('content')
         </main>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+6Y+oFZkrD+f97yeUWZJ6rzTnqPp" crossorigin="anonymous"></script>
+
 </body>
 </html>
