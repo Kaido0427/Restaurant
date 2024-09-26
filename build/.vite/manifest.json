@@ -1,0 +1,13 @@
+{
+  "resources/js/app.js": {
+    "file": "app-H1p8gvK4.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/sass/app.scss": {
+    "file": "app-D-sv12UV.css",
+    "src": "resources/sass/app.scss",
+    "isEntry": true
+  }
+}
