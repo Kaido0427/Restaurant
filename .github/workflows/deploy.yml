@@ -46,7 +46,7 @@ jobs:
       env:
         RAILWAY_API_KEY: ${{ secrets.RAILWAY_API_KEY }}
       run: |
-        curl -X POST https://api.railway.app/v1/projects/937e7253-56bc-42de-9c4c-9fc6f7f53e40/deployments \
+        curl -X POST https://backboard.railway.app/v1/projects/937e7253-56bc-42de-9c4c-9fc6f7f53e40/deployments \
           -H "Authorization: Bearer $RAILWAY_API_KEY" \
           -H "Content-Type: application/json" \
           -d '{}'
