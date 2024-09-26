@@ -1,52 +1,54 @@
-name: Deploy Laravel Application
+name: Deploy to Railway
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # Step to checkout the latest code from the repository
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: mbstring, bcmath, gd, pdo, pdo_mysql, zip
+      # Step to set up PHP (for Laravel)
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1' 
+          extensions: mbstring, pdo, json, curl, openssl, xml, tokenizer
+          coverage: none
 
-    - name: Install Composer
-      run: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+      # Step to install Composer dependencies
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-    - name: Reinstall PHP dependencies
-      run: composer install --no-dev --optimize-autoloader --prefer-dist
+      # Step to set up Node.js
+      - name: Use Node 18
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      # Step to install Node.js dependencies
+      - name: Install Node.js packages
+        run: yarn install --frozen-lockfile
 
-    - name: Reinstall npm dependencies
-      run: npm ci
+      # Step to build assets (if needed)
+      - name: Build Assets
+        run: yarn build # If you need to build assets like CSS/JS files, adjust this based on your setup
 
-    - name: Build assets
-      run: npm run build
+      # Step to run tests (optional)
+      - name: Run tests
+        run: yarn test # Modify this if you have specific tests for Laravel/JS
 
-    - name: Cache configuration and routes
-      run: |
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
+      # Step to install Railway CLI
+      - name: Install Railway
+        run: npm i -g @railway/cli
 
-    - name: Trigger Railway Deployment
-      env:
-        RAILWAY_API_KEY: ${{ secrets.RAILWAY_API_KEY }}
-      run: |
-        curl -X POST https://backboard.railway.app/v1/projects/937e7253-56bc-42de-9c4c-9fc6f7f53e40/deployments \
-          -H "Authorization: Bearer $RAILWAY_API_KEY" \
-          -H "Content-Type: application/json" \
-          -d '{}'
+      # Step to deploy using Railway CLI
+      - name: Deploy to Railway
+        run: railway up
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
