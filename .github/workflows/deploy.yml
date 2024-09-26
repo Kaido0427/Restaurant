@@ -23,7 +23,7 @@ jobs:
 
       # Step to install Composer dependencies
       - name: Install Composer Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-dev --optimize-autoloader
 
       # Step to set up Node.js
       - name: Use Node 18
