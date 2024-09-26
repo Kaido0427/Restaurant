@@ -1,0 +1,56 @@
+name: Deploy Laravel Application
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
+        extensions: mbstring, bcmath, gd, pdo, pdo_mysql, zip
+        coverage: none
+
+    - name: Install Composer
+      run: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+    - name: Reinstall PHP dependencies
+      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Reinstall npm dependencies
+      run: npm ci  # Utilisez npm ci pour une installation propre
+
+    - name: Build assets
+      run: npm run build
+
+    - name: Run migrations
+      run: php artisan migrate --force
+
+    - name: Cache configuration and routes
+      run: |
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+
+    - name: Deploy to Server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        HOST: ${{ secrets.HOST }}
+        USER: ${{ secrets.USER }}
+      run: |
+        rsync -avz --exclude='.git*' --exclude='node_modules' --exclude='vendor' . $USER@$HOST:/app
+        ssh $USER@$HOST 'cd /app && php artisan migrate --force'
