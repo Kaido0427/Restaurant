@@ -23,7 +23,7 @@ jobs:
       run: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
     - name: Reinstall PHP dependencies
-      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
+      run: composer install --no-dev --optimize-autoloader --prefer-dist
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
