@@ -41,10 +41,10 @@ jobs:
 
       # Step to install Railway CLI
       - name: Install Railway
-        run: npm i -g @railway/cli
+        run: npm i -g @railway/cli@latest
 
       # Step to deploy using Railway CLI
       - name: Deploy to Railway
-        run: railway up --service 16441226-53fa-4cd7-ab82-0c8d584d836d
+        run: railway up --service 16441226-53fa-4cd7-ab82-0c8d584d836d --verbose
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
