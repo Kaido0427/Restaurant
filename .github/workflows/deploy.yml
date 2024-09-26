@@ -45,6 +45,6 @@ jobs:
 
       # Step to deploy using Railway CLI
       - name: Deploy to Railway
-        run: railway up --service 0518b829-ebba-45ca-8698-3ab1eae76214
+        run: railway up --service 16441226-53fa-4cd7-ab82-0c8d584d836d
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
