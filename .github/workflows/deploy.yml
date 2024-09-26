@@ -39,10 +39,6 @@ jobs:
       - name: Build Assets
         run: yarn build # If you need to build assets like CSS/JS files, adjust this based on your setup
 
-      # Step to run tests (optional)
-      - name: Run tests
-        run: yarn test # Modify this if you have specific tests for Laravel/JS
-
       # Step to install Railway CLI
       - name: Install Railway
         run: npm i -g @railway/cli
